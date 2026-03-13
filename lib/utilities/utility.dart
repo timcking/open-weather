@@ -1,17 +1,17 @@
 import 'package:intl/intl.dart';
 
 int calcHour(dynamic epochDate) {
-  DateTime localDate =
-      new DateTime.fromMillisecondsSinceEpoch(epochDate * 1000);
-  var format = new DateFormat('H');
+  DateTime localDate = DateTime.fromMillisecondsSinceEpoch(epochDate * 1000);
+  var format = DateFormat('H');
   var hour = format.format(localDate);
 
   return int.parse(hour);
 }
 
-String convertTime(int theDate) {
-  final DateTime date0 = DateTime.fromMillisecondsSinceEpoch(theDate * 1000);
-  return DateFormat("h:mm a").format(date0);
+String convertTime(int theDate, int timezoneOffset) {
+  final DateTime utc = DateTime.fromMillisecondsSinceEpoch(theDate * 1000, isUtc: true);
+  final DateTime cityTime = utc.add(Duration(seconds: timezoneOffset));
+  return DateFormat("h:mm a").format(cityTime);
 }
 
 String convertToTitleCase(String text) {

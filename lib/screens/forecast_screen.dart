@@ -44,7 +44,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
       int condition = forecastData['list'][i]['weather'][0]['id'];
       String description = forecastData['list'][i]['weather'][0]['main'];
 
-      forecastString = temperature + '°' + '  ' + description;
+      forecastString = '$temperature°  $description';
       listForecast.add(forecastString);
 
       // Icon list
@@ -55,9 +55,8 @@ class _ForecastScreenState extends State<ForecastScreen> {
   }
 
   String formatDate(dynamic epochDate) {
-    DateTime localDate =
-        new DateTime.fromMillisecondsSinceEpoch(epochDate * 1000);
-    var format = new DateFormat('E MM/dd h a');
+    DateTime localDate = DateTime.fromMillisecondsSinceEpoch(epochDate * 1000);
+    var format = DateFormat('E MM/dd h a');
     String myDate = format.format(localDate);
 
     return myDate;
@@ -67,8 +66,8 @@ class _ForecastScreenState extends State<ForecastScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(color: Colors.indigo),
-        constraints: BoxConstraints.expand(),
+        decoration: const BoxDecoration(color: Colors.indigo),
+        constraints: const BoxConstraints.expand(),
         child: SafeArea(
           child: Column(
             children: <Widget>[
@@ -79,7 +78,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: Icon(
+                  child: const Icon(
                     Icons.arrow_back,
                     size: 40.0,
                   ),
@@ -87,12 +86,12 @@ class _ForecastScreenState extends State<ForecastScreen> {
               ),
               // TCK
               // https://stackoverflow.com/questions/52801201/flutter-renderbox-was-not-laid-out
-              SizedBox(height: 10.0),
+              const SizedBox(height: 10.0),
               Expanded(
                 child: ListView.separated(
                   itemCount: listForecast.length,
                   separatorBuilder: (BuildContext context, int index) =>
-                      Divider(),
+                      const Divider(),
                   itemBuilder: (context, index) {
                     return ListTile(
                       leading: Icon(
@@ -100,22 +99,23 @@ class _ForecastScreenState extends State<ForecastScreen> {
                         size: 60.0,
                       ),
                       title: Align(
+                        alignment: const Alignment(-0.5, 0),
                         child: Text(
                           listForecast[index].toString(),
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontFamily: 'Roboto',
                             fontSize: 25.0, // insert your font size here
                           ),
                         ),
-                        alignment: Alignment(-0.5, 0),
                       ),
                       subtitle: Align(
+                        alignment: const Alignment(-0.5, 0),
                         child: Text(
                           listDateTime[index],
                         ),
-                        alignment: Alignment(-0.5, 0),
                       ),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 20.0),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 20.0),
                     );
                   },
                 ),

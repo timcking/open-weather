@@ -25,6 +25,7 @@ if (flutterVersionName == null) {
 android {
     namespace "com.timothyking.open_weather"
     compileSdkVersion 36
+    ndkVersion "27.2.12479018"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

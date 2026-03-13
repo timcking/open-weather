@@ -33,58 +33,71 @@ class _LocationScreenState extends State<LocationScreen> {
     updateUI(widget.locationWeather);
   }
 
-  void updateUI(dynamic weatherData) {
-    String humidity;
-    String feelsLike;
-    String minTemp;
-    String maxTemp;
-    int sunrise;
-    int sunset;
-
+  void updateUI(dynamic weatherData) async {
     listName.clear();
     listValue.clear();
 
-    setState(() {
-      if (weatherData == null) {
+    if (weatherData == null) {
+      setState(() {
         temperature = '';
         weatherMessage = 'Unable to get weather data';
         cityName = '';
-        return;
+      });
+      return;
+    }
+
+    int tempValue = weatherData['main']['temp'].round();
+    var condition = weatherData['weather'][0]['id'];
+    String desc = weatherData['weather'][0]['main'];
+    String city = weatherData['name'];
+    String humidity = weatherData['main']['humidity'].toString();
+    String feelsLike = weatherData['main']['feels_like'].round().toString();
+    int sunrise = weatherData['sys']['sunrise'];
+    int sunset = weatherData['sys']['sunset'];
+    int timezoneOffset = weatherData['timezone'];
+    int hour = calcHour(weatherData['dt']);
+
+    // Compute today's real high/low from the 3-hour forecast intervals
+    double minT = weatherData['main']['temp_min'].toDouble();
+    double maxT = weatherData['main']['temp_max'].toDouble();
+    try {
+      var forecastData = await weather.getCityForecast(city);
+      int count = forecastData['cnt'];
+      DateTime now = DateTime.now();
+      double fMin = double.maxFinite;
+      double fMax = -double.maxFinite;
+      for (int i = 0; i < count; i++) {
+        var entry = forecastData['list'][i];
+        DateTime entryDate =
+            DateTime.fromMillisecondsSinceEpoch(entry['dt'] * 1000);
+        if (entryDate.year == now.year &&
+            entryDate.month == now.month &&
+            entryDate.day == now.day) {
+          double eMin = entry['main']['temp_min'].toDouble();
+          double eMax = entry['main']['temp_max'].toDouble();
+          if (eMin < fMin) fMin = eMin;
+          if (eMax > fMax) fMax = eMax;
+        }
       }
+      if (fMin != double.maxFinite) minT = fMin;
+      if (fMax != -double.maxFinite) maxT = fMax;
+    } catch (_) {
+      // keep fallback values from current weather
+    }
 
-      temperature = weatherData['main']['temp'].round().toString();
+    if (!mounted) return;
+    setState(() {
+      temperature = tempValue.toString();
+      description = desc;
+      cityName = city;
 
-      var condition = weatherData['weather'][0]['id'];
-      description = weatherData['weather'][0]['main'];
-      cityName = weatherData['name'];
-
-      humidity = weatherData['main']['humidity'].toString();
-      feelsLike = weatherData['main']['feels_like'].round().toString();
-      minTemp = weatherData['main']['temp_min'].round().toString();
-      maxTemp = weatherData['main']['temp_max'].round().toString();
-
-      sunrise = weatherData['sys']['sunrise'];
-      String sunriseTime = convertTime(sunrise);
-
-      sunset = weatherData['sys']['sunset'];
-      String sunsetTime = convertTime(sunset);
-
-      listName.add('Feels Like');
-      listName.add('Low');
-      listName.add('High');
-      listName.add('Humidity');
-      listName.add('Sunrise');
-      listName.add('Sunset');
-
-      listValue.add(feelsLike + '°');
-      listValue.add(minTemp + '°');
-      listValue.add(maxTemp + '°');
-      listValue.add(humidity + '%');
-      listValue.add(sunriseTime.toLowerCase());
-      listValue.add(sunsetTime.toLowerCase());
-
-      var epochDate = weatherData['dt'];
-      int hour = calcHour(epochDate);
+      listName.addAll(['Feels Like', 'Low', 'High', 'Humidity', 'Sunrise', 'Sunset']);
+      listValue.add('$feelsLike°');
+      listValue.add('${minT.round()}°');
+      listValue.add('${maxT.round()}°');
+      listValue.add('$humidity%');
+      listValue.add(convertTime(sunrise, timezoneOffset).toLowerCase());
+      listValue.add(convertTime(sunset, timezoneOffset).toLowerCase());
 
       weatherIcon = weather.getWeatherIcon(condition, hour);
     });
@@ -102,10 +115,10 @@ class _LocationScreenState extends State<LocationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.indigo,
         ),
-        constraints: BoxConstraints.expand(),
+        constraints: const BoxConstraints.expand(),
         child: SafeArea(
           child: Column(
             children: <Widget>[
@@ -118,7 +131,7 @@ class _LocationScreenState extends State<LocationScreen> {
                       var weatherData = await weather.getLocationWeather();
                       updateUI(weatherData);
                     },
-                    child: Icon(
+                    child: const Icon(
                       Icons.refresh,
                       size: 50.0,
                     ),
@@ -128,7 +141,7 @@ class _LocationScreenState extends State<LocationScreen> {
                     onPressed: () {
                       getForecastData();
                     },
-                    child: Icon(
+                    child: const Icon(
                       // Icons.wb_sunny,
                       Icons.sunny,
                       size: 50.0,
@@ -139,7 +152,7 @@ class _LocationScreenState extends State<LocationScreen> {
                     onPressed: () async {
                       var typedName = await Navigator.push(context,
                           MaterialPageRoute(builder: (context) {
-                        return CityScreen();
+                        return const CityScreen();
                       }));
                       if (typedName != null) {
                         var weatherData =
@@ -147,14 +160,14 @@ class _LocationScreenState extends State<LocationScreen> {
                         updateUI(weatherData);
                       }
                     },
-                    child: Icon(
+                    child: const Icon(
                       Icons.location_city,
                       size: 50.0,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 30.0),
+              const SizedBox(height: 30.0),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -163,44 +176,44 @@ class _LocationScreenState extends State<LocationScreen> {
                     textAlign: TextAlign.center,
                     style: kTempTextStyle,
                   ),
-                  SizedBox(width: 10.0),
+                  const SizedBox(width: 10.0),
                   BoxedIcon(
                     weatherIcon,
                     size: 70.0,
                   ),
                 ],
               ),
-              SizedBox(height: 20.0),
+              const SizedBox(height: 20.0),
               Text(
-                '$cityName',
+                cityName,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.roboto(fontSize: 40),
               ),
-              SizedBox(height: 20.0),
+              const SizedBox(height: 20.0),
               Text(
-                '$description',
+                description,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.roboto(fontSize: 30),
               ),
-              SizedBox(height: 20.0),
+              const SizedBox(height: 20.0),
               Expanded(
                 child: ListView.separated(
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   itemCount: listName.length,
                   separatorBuilder: (BuildContext context, int index) =>
-                      Divider(),
+                      const Divider(),
                   itemBuilder: (context, index) {
                     return ListTile(
                       dense: true,
-                      visualDensity: VisualDensity(vertical: -3),
+                      visualDensity: const VisualDensity(vertical: -3),
                       onTap: () {},
                       title: Align(
+                          alignment: Alignment.centerLeft,
                           child: Text(listName[index],
                               style: const TextStyle(
                                 fontSize: 26.0,
-                              )),
-                          alignment: Alignment.centerLeft),
+                              ))),
                       trailing: Text(listValue[index].toString(),
                           style: const TextStyle(
                               color: Colors.yellow, fontSize: 26.0)),

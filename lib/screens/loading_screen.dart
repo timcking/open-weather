@@ -5,6 +5,8 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:clima/services/weather.dart';
 
 class LoadingScreen extends StatefulWidget {
+  const LoadingScreen({super.key});
+
   @override
   _LoadingScreenState createState() => _LoadingScreenState();
 }
@@ -28,14 +30,14 @@ class _LoadingScreenState extends State<LoadingScreen> {
       // GPS not available (e.g. Linux desktop) — go straight to city search
       if (!mounted) return;
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-        return CityScreen();
+        return const CityScreen();
       }));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Center(
         child: SpinKitDoubleBounce(
           color: Colors.purple,
